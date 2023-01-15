@@ -71,7 +71,7 @@ app.post("/users/search-by-email", async (req, res) => {
     const email = req.body.email;
     const user = await OFSFindUserByEmail(email);
     console.log(user);
-    res.status(200).json({ user });
+    res.status(200).send({ data: user });
   } catch (e) {
     console.log(e);
     res.status(500).json(e);
