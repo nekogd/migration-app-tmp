@@ -54,13 +54,16 @@ const sequelize = new Sequelize({
 
 const OFSFindUserByEmail = async (email) => {
   try {
-    //const email = 'v.valikova@bioniq.com'
+    //const correctEmail = 'i.luczko@bioniq.com'
+    //const incorrectEmail = 'i.luczko+1@bioniq.com'
     await sequelize.authenticate();
     console.log("Connection has been established successfully.");
     const result = await sequelize.query(
       `SELECT * from users WHERE email='${email}'`
     );
-    console.log(result);
+    if (Array.isArray(result[0]) && Array.isArray(result[0])) {
+      return result[0][0];
+    } else return null;
   } catch (error) {
     console.error("Unable to connect to the database:", error);
   }
@@ -71,7 +74,12 @@ app.post("/users/search-by-email", async (req, res) => {
     const email = req.body.email;
     const user = await OFSFindUserByEmail(email);
     console.log(user);
-    res.status(200).send({ data: user });
+    if (user != null) {
+      res.status(200).send({ data: user, message: "OK" });
+    } else {
+      // here check Loewi
+      res.status(404).send({ message: "User not found in OFS" });
+    }
   } catch (e) {
     console.log(e);
     res.status(500).json(e);
