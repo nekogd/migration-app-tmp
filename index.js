@@ -57,7 +57,6 @@ const OFSFindUserByEmail = async (email) => {
     //const correctEmail = 'i.luczko@bioniq.com'
     //const incorrectEmail = 'i.luczko+1@bioniq.com'
     await sequelize.authenticate();
-    console.log("Connection has been established successfully.");
     const result = await sequelize.query(
       `SELECT * from users WHERE email='${email}'`
     );
@@ -103,15 +102,10 @@ const OFSFindOrdersByClientID = async (clientID) => {
 
 const OFSFindBloodTestsByOrderID = async (orderID) => {
   try {
-    //const correctEmail = 'i.luczko@bioniq.com'
-    //const incorrectEmail = 'i.luczko+1@bioniq.com'
     await sequelize.authenticate();
-    console.log("Connection has been established successfully.");
     const result = await sequelize.query(
       `SELECT * from blood_tests WHERE order_id='${orderID}'`
     );
-    console.log(`bloodtest`);
-    console.log(result[0]);
     return result[0];
   } catch (error) {
     console.error("Unable to connect to the database:", error);
@@ -120,15 +114,10 @@ const OFSFindBloodTestsByOrderID = async (orderID) => {
 
 const OFSFindFormulasByOrderID = async (orderID) => {
   try {
-    //const correctEmail = 'i.luczko@bioniq.com'
-    //const incorrectEmail = 'i.luczko+1@bioniq.com'
     await sequelize.authenticate();
-    console.log("Connection has been established successfully.");
     const result = await sequelize.query(
       `SELECT * from formulas WHERE order_id='${orderID}'`
     );
-    console.log(`formula`);
-    console.log(result[0]);
     return result[0];
   } catch (error) {
     console.error("Unable to connect to the database:", error);
@@ -137,15 +126,12 @@ const OFSFindFormulasByOrderID = async (orderID) => {
 
 const OFSFindFormulaRecipeByFormulaID = async (formulaID) => {
   try {
-    //const correctEmail = 'i.luczko@bioniq.com'
-    //const incorrectEmail = 'i.luczko+1@bioniq.com'
     await sequelize.authenticate();
-    console.log("Connection has been established successfully.");
+
     const result = await sequelize.query(
       `select * from formula_recipes AS Recipes INNER JOIN components AS Compo ON Recipes.component_id=Compo.id INNER JOIN dosages as Dosa ON Recipes.dosage_id=Dosa.id WHERE formula_id='${formulaID}'`
     );
-    console.log(`formula`);
-    console.log(result[0]);
+
     return result[0];
   } catch (error) {
     console.error("Unable to connect to the database:", error);
@@ -157,12 +143,11 @@ const OFSFindFormulaIntakeByFormulaID = async (formulaID) => {
     //const correctEmail = 'i.luczko@bioniq.com'
     //const incorrectEmail = 'i.luczko+1@bioniq.com'
     await sequelize.authenticate();
-    console.log("Connection has been established successfully.");
+
     const result = await sequelize.query(
       `select * from formula_intakes as Intakes INNER JOIN micronutrients as Micro On Intakes.micronutrient_id=Micro.id where formula_id='${formulaID}'`
     );
-    console.log(`formula`);
-    console.log(result[0]);
+
     return result[0];
   } catch (error) {
     console.error("Unable to connect to the database:", error);
@@ -205,12 +190,11 @@ const OFSFindBloodTestsResultsByBloodTestID = async (bloodtestID) => {
     //const correctEmail = 'i.luczko@bioniq.com'
     //const incorrectEmail = 'i.luczko+1@bioniq.com'
     await sequelize.authenticate();
-    console.log("Connection has been established successfully.");
+
     const result = await sequelize.query(
       `SELECT * from blood_test_results WHERE blood_test_id='${bloodtestID}'`
     );
-    console.log(`bloodtest results`);
-    console.log(result[0]);
+
     return result[0];
   } catch (error) {
     console.error("Unable to connect to the database:", error);
@@ -272,52 +256,66 @@ app.post("/clients/all-data-by-email", async (req, res) => {
   try {
     const email = req.body.email;
     const client = await OFSFindClientByEmail(email);
-    const orders = await OFSFindOrdersByClientID(client.id);
-    console.log(orders);
-    for (let i = 0; i < orders.length; i++) {
-      const order = orders[i];
-      console.log(`order`);
-      console.log(order.id);
+    if (client != null && client.id != null) {
+      const orders = await OFSFindOrdersByClientID(client.id);
 
-      // questionaires
-      const questionairesSheets = await OFSFindQuestionarrySheetsByFormulaID(
-        order.id
-      );
-      order.questionaires_sheets = questionairesSheets;
+      for (let i = 0; i < orders.length; i++) {
+        const order = orders[i];
 
-      for (let m = 0; m < order.questionaires_sheets.length; m++) {
-        const sheet = order.questionaires_sheets[m];
-        const sheetData = await OFSFindQuestionarrySheetsBySheetID(sheet.id);
-        order.questionaires_sheets[m].results = sheetData;
-      }
+        if (order.id != null) {
+          // questionaires
+          const questionairesSheets =
+            await OFSFindQuestionarrySheetsByFormulaID(order.id);
+          order.questionaires_sheets = questionairesSheets;
 
-      // bloodtests
-      const bloodtestData = await OFSFindBloodTestsByOrderID(order.id);
-      order.bloodtest_data = bloodtestData;
+          if (
+            Array.isArray(order.questionaires_sheets) &&
+            order.questionaires_sheets.length > 0
+          ) {
+            for (let m = 0; m < order.questionaires_sheets.length; m++) {
+              const sheet = order.questionaires_sheets[m];
+              const sheetData = await OFSFindQuestionarrySheetsBySheetID(
+                sheet.id
+              );
+              order.questionaires_sheets[m].results = sheetData;
+            }
+          }
 
-      for (let j = 0; j < order.bloodtest_data.length; j++) {
-        const bloodTest = order.bloodtest_data[j];
-        const bloodTestResults = await OFSFindBloodTestsResultsByBloodTestID(
-          bloodTest.id
-        );
-        order.bloodtest_data[j].results = bloodTestResults;
-      }
+          // bloodtests
+          const bloodtestData = await OFSFindBloodTestsByOrderID(order.id);
+          order.bloodtest_data = bloodtestData;
 
-      // formulas
-      const formulasIDS = await OFSFindFormulasByOrderID(order.id);
-      order.formulas = formulasIDS;
-      for (let k = 0; k < order.formulas.length; k++) {
-        const formula = order.formulas[k];
-        order.formulas_recipes = await OFSFindFormulaRecipeByFormulaID(
-          formula.id
-        );
-        order.formulas_intakes = await OFSFindFormulaIntakeByFormulaID(
-          formula.id
-        );
+          if (
+            Array.isArray(order.bloodtest_data) &&
+            order.bloodtest_data.length > 0
+          ) {
+            for (let j = 0; j < order.bloodtest_data.length; j++) {
+              const bloodTest = order.bloodtest_data[j];
+              const bloodTestResults =
+                await OFSFindBloodTestsResultsByBloodTestID(bloodTest.id);
+              order.bloodtest_data[j].results = bloodTestResults;
+            }
+          }
+
+          // formulas
+          const formulasIDS = await OFSFindFormulasByOrderID(order.id);
+          order.formulas = formulasIDS;
+          if (Array.isArray(order.formulas) && order.formulas.length > 0) {
+            for (let k = 0; k < order.formulas.length; k++) {
+              const formula = order.formulas[k];
+              order.formulas_recipes = await OFSFindFormulaRecipeByFormulaID(
+                formula.id
+              );
+              order.formulas_intakes = await OFSFindFormulaIntakeByFormulaID(
+                formula.id
+              );
+            }
+          }
+        }
+
+        client.orders = orders;
       }
     }
-
-    client.orders = orders;
     if (client != null) {
       res.status(200).send({ data: client, message: "OK" });
     } else {
