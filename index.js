@@ -69,16 +69,260 @@ const OFSFindUserByEmail = async (email) => {
   }
 };
 
+const OFSFindClientByEmail = async (email) => {
+  try {
+    //const correctEmail = 'i.luczko@bioniq.com'
+    //const incorrectEmail = 'i.luczko+1@bioniq.com'
+    await sequelize.authenticate();
+    const result = await sequelize.query(
+      `SELECT * from clients WHERE email='${email}'`
+    );
+    if (Array.isArray(result[0]) && Array.isArray(result[0])) {
+      return result[0][0];
+    } else return null;
+  } catch (error) {
+    console.error("Unable to connect to the database:", error);
+  }
+};
+
+const OFSFindOrdersByClientID = async (clientID) => {
+  try {
+    //const correctEmail = 'i.luczko@bioniq.com'
+    //const incorrectEmail = 'i.luczko+1@bioniq.com'
+    await sequelize.authenticate();
+    const result = await sequelize.query(
+      `SELECT * from orders WHERE client_id='${clientID}'`
+    );
+    if (Array.isArray(result[0])) {
+      return result[0];
+    } else return null;
+  } catch (error) {
+    console.error("Unable to connect to the database:", error);
+  }
+};
+
+const OFSFindBloodTestsByOrderID = async (orderID) => {
+  try {
+    //const correctEmail = 'i.luczko@bioniq.com'
+    //const incorrectEmail = 'i.luczko+1@bioniq.com'
+    await sequelize.authenticate();
+    console.log("Connection has been established successfully.");
+    const result = await sequelize.query(
+      `SELECT * from blood_tests WHERE order_id='${orderID}'`
+    );
+    console.log(`bloodtest`);
+    console.log(result[0]);
+    return result[0];
+  } catch (error) {
+    console.error("Unable to connect to the database:", error);
+  }
+};
+
+const OFSFindFormulasByOrderID = async (orderID) => {
+  try {
+    //const correctEmail = 'i.luczko@bioniq.com'
+    //const incorrectEmail = 'i.luczko+1@bioniq.com'
+    await sequelize.authenticate();
+    console.log("Connection has been established successfully.");
+    const result = await sequelize.query(
+      `SELECT * from formulas WHERE order_id='${orderID}'`
+    );
+    console.log(`formula`);
+    console.log(result[0]);
+    return result[0];
+  } catch (error) {
+    console.error("Unable to connect to the database:", error);
+  }
+};
+
+const OFSFindFormulaRecipeByFormulaID = async (formulaID) => {
+  try {
+    //const correctEmail = 'i.luczko@bioniq.com'
+    //const incorrectEmail = 'i.luczko+1@bioniq.com'
+    await sequelize.authenticate();
+    console.log("Connection has been established successfully.");
+    const result = await sequelize.query(
+      `select * from formula_recipes AS Recipes INNER JOIN components AS Compo ON Recipes.component_id=Compo.id INNER JOIN dosages as Dosa ON Recipes.dosage_id=Dosa.id WHERE formula_id='${formulaID}'`
+    );
+    console.log(`formula`);
+    console.log(result[0]);
+    return result[0];
+  } catch (error) {
+    console.error("Unable to connect to the database:", error);
+  }
+};
+
+const OFSFindFormulaIntakeByFormulaID = async (formulaID) => {
+  try {
+    //const correctEmail = 'i.luczko@bioniq.com'
+    //const incorrectEmail = 'i.luczko+1@bioniq.com'
+    await sequelize.authenticate();
+    console.log("Connection has been established successfully.");
+    const result = await sequelize.query(
+      `select * from formula_intakes as Intakes INNER JOIN micronutrients as Micro On Intakes.micronutrient_id=Micro.id where formula_id='${formulaID}'`
+    );
+    console.log(`formula`);
+    console.log(result[0]);
+    return result[0];
+  } catch (error) {
+    console.error("Unable to connect to the database:", error);
+  }
+};
+
+const OFSFindQuestionarrySheetsByFormulaID = async (orderID) => {
+  try {
+    //const correctEmail = 'i.luczko@bioniq.com'
+    //const incorrectEmail = 'i.luczko+1@bioniq.com'
+    await sequelize.authenticate();
+    console.log("Connection has been established successfully.");
+    const result = await sequelize.query(
+      `SELECT * FROM public.questionary_answer_sheets WHERE order_id='${orderID}'`
+    );
+    return result[0];
+  } catch (error) {
+    console.error("Unable to connect to the database:", error);
+  }
+};
+
+const OFSFindQuestionarrySheetsBySheetID = async (sheetID) => {
+  try {
+    //const correctEmail = 'i.luczko@bioniq.com'
+    //const incorrectEmail = 'i.luczko+1@bioniq.com'
+    await sequelize.authenticate();
+    console.log("Connection has been established successfully.");
+    const result = await sequelize.query(
+      `SELECT * FROM questionary_answers as Answers INNER JOIN questionary_question_variants AS QuestionsVariants on Answers.variant_id=QuestionsVariants.id INNER JOIN questionary_questions as Questions on QuestionsVariants.question_id=Questions.id
+      WHERE sheet_id='${sheetID}'`
+    );
+    return result[0];
+  } catch (error) {
+    console.error("Unable to connect to the database:", error);
+  }
+};
+
+const OFSFindBloodTestsResultsByBloodTestID = async (bloodtestID) => {
+  try {
+    //const correctEmail = 'i.luczko@bioniq.com'
+    //const incorrectEmail = 'i.luczko+1@bioniq.com'
+    await sequelize.authenticate();
+    console.log("Connection has been established successfully.");
+    const result = await sequelize.query(
+      `SELECT * from blood_test_results WHERE blood_test_id='${bloodtestID}'`
+    );
+    console.log(`bloodtest results`);
+    console.log(result[0]);
+    return result[0];
+  } catch (error) {
+    console.error("Unable to connect to the database:", error);
+  }
+};
+
 app.post("/users/search-by-email", async (req, res) => {
   try {
     const email = req.body.email;
     const user = await OFSFindUserByEmail(email);
-    console.log(user);
+
     if (user != null) {
       res.status(200).send({ data: user, message: "OK" });
     } else {
       // here check Loewi
       res.status(404).send({ message: "User not found in OFS" });
+    }
+  } catch (e) {
+    console.log(e);
+    res.status(500).json(e);
+  }
+});
+
+app.post("/clients/search-by-email", async (req, res) => {
+  try {
+    const email = req.body.email;
+    const client = await OFSFindClientByEmail(email);
+
+    if (client != null) {
+      res.status(200).send({ data: client, message: "OK" });
+    } else {
+      // here check Loewi
+      res.status(404).send({ message: "Client not found in OFS" });
+    }
+  } catch (e) {
+    console.log(e);
+    res.status(500).json(e);
+  }
+});
+
+app.post("/orders/search-by-client-id", async (req, res) => {
+  try {
+    const clientID = req.body.clientID;
+    const orders = await OFSFindOrdersByClientID(clientID);
+
+    if (orders != null) {
+      res.status(200).send({ data: client, message: "OK" });
+    } else {
+      // here check Loewi
+      res.status(404).send({ message: "Client not found in OFS" });
+    }
+  } catch (e) {
+    console.log(e);
+    res.status(500).json(e);
+  }
+});
+
+app.post("/clients/all-data-by-email", async (req, res) => {
+  try {
+    const email = req.body.email;
+    const client = await OFSFindClientByEmail(email);
+    const orders = await OFSFindOrdersByClientID(client.id);
+    console.log(orders);
+    for (let i = 0; i < orders.length; i++) {
+      const order = orders[i];
+      console.log(`order`);
+      console.log(order.id);
+
+      // questionaires
+      const questionairesSheets = await OFSFindQuestionarrySheetsByFormulaID(
+        order.id
+      );
+      order.questionaires_sheets = questionairesSheets;
+
+      for (let m = 0; m < order.questionaires_sheets.length; m++) {
+        const sheet = order.questionaires_sheets[m];
+        const sheetData = await OFSFindQuestionarrySheetsBySheetID(sheet.id);
+        order.questionaires_sheets[m].results = sheetData;
+      }
+
+      // bloodtests
+      const bloodtestData = await OFSFindBloodTestsByOrderID(order.id);
+      order.bloodtest_data = bloodtestData;
+
+      for (let j = 0; j < order.bloodtest_data.length; j++) {
+        const bloodTest = order.bloodtest_data[j];
+        const bloodTestResults = await OFSFindBloodTestsResultsByBloodTestID(
+          bloodTest.id
+        );
+        order.bloodtest_data[j].results = bloodTestResults;
+      }
+
+      // formulas
+      const formulasIDS = await OFSFindFormulasByOrderID(order.id);
+      order.formulas = formulasIDS;
+      for (let k = 0; k < order.formulas.length; k++) {
+        const formula = order.formulas[k];
+        order.formulas_recipes = await OFSFindFormulaRecipeByFormulaID(
+          formula.id
+        );
+        order.formulas_intakes = await OFSFindFormulaIntakeByFormulaID(
+          formula.id
+        );
+      }
+    }
+
+    client.orders = orders;
+    if (client != null) {
+      res.status(200).send({ data: client, message: "OK" });
+    } else {
+      // here check Loewi
+      res.status(404).send({ message: "Client not found in OFS" });
     }
   } catch (e) {
     console.log(e);
