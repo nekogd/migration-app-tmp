@@ -2,7 +2,7 @@ const express = require("express");
 const helmet = require("helmet");
 const cors = require("cors");
 const app = express();
-require('dotenv').config()
+require("dotenv").config();
 
 const port = process.env.PORT || 5005;
 
@@ -18,6 +18,14 @@ app.use(express.urlencoded({ extended: true }));
 // enable cors
 app.use(cors());
 app.options("*", cors());
+
+app.get("/health-check", async (req, res) => {
+  try {
+    res.status(200).json({ status: "ok" });
+  } catch (e) {
+    res.status(500).json(e);
+  }
+});
 
 app.use(function (req, res, next) {
   if (req.headers.authorization !== process.env.AUTHORIZATION_TOKEN) {
@@ -70,4 +78,4 @@ app.post("/users/search-by-email", async (req, res) => {
   }
 });
 
-app.listen(port,() => console.log("started"));
+app.listen(port, () => console.log(`migration app listening on port ${port}`));
